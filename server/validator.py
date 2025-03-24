@@ -9,16 +9,45 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import re
 from dotenv import load_dotenv  # Import the dotenv library
+import os
+from pathlib import Path
 
-load_dotenv('.env.local')
+
+env_path = Path(__file__).resolve().parent.parent / '.env.local'
+
+load_dotenv(dotenv_path=env_path)
 openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:
     raise ValueError("OPENAI_API_KEY not found in .env.local")
+
 client = OpenAI(api_key=openai_api_key)
 
 SCREENSHOT_DIR = Path("screenshots")
 SCREENSHOT_DIR.mkdir(exist_ok=True)
 
+def ai_infer_submit_button(button_data):
+    """Given a list of buttons, infer which is most likely the form submit button."""
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are an assistant helping identify the submit button for a demo request form."},
+            {"role": "user", "content": f"""
+Here are the buttons available on the form submission screen:
+{json.dumps(button_data, indent=2)}
+
+Which one should be clicked to submit the demo request?
+
+Return JSON like:
+{{
+  "buttonIndex": 1
+}}
+"""}
+        ]
+    )
+    content = response.choices[0].message.content
+    print("\U0001f501 Raw AI Output (submit button):\n", content, flush=True)
+    return extract_json(content)
+    
 def fill_form_with_fallback(page, field_values):
     try:
         if "name" in field_values:
@@ -228,19 +257,24 @@ def run_test(url):
             take_screenshot(page, "before_confirm_click")
             try:
                 try:
-                    # Wait until a confirm-like button is visible
-                    confirm_button = (
-                        page.locator('button:has-text("Confirm")').first or
-                        page.locator('button[type="submit"]').first or
-                        page.locator('button').first
-                    )
-
-                    confirm_button.wait_for(state="visible", timeout=10000)
-                    screenshots.append(Path(take_screenshot(page, "before_confirm_click")).name)
-                    confirm_button.click()
-
+                    ai_response = ai_infer_submit_button(button_data)
+                    print("AI Response:", ai_response, flush=True)
+                    log("AI Inference", "success", "OpenAI identified the submit button.")
                 except Exception as e:
-                    log("Form Validation", "fail", f"Failed to fill or submit form: {e}")
+                    log("AI Inference", "fail", f"OpenAI error: {str(e)}")
+                    browser.close()
+                    return
+                try:
+                    button_index = ai_response["buttonIndex"]
+                    print("Button Index:", button_index, flush=True)
+                    if isinstance(button_index, list):
+                        button_index = button_index[0]
+                    filtered_buttons[int(button_index)].click()
+
+                    log("Submit Button Click", "success", f"Clicked button at index {button_index}.")
+                    screenshots.append(Path(take_screenshot(page, "after_submit_click")).name)
+                except Exception as e:
+                    log("Submit Button Click", "fail", f"Failed to click AI-identified button: {str(e)}")
                     browser.close()
                     return
 

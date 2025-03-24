@@ -1,12 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = 5001;
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/pdf', express.static(__dirname));
+
 
 app.get('/stream-validate', (req, res) => {
   const url = req.query.url;

@@ -25,12 +25,23 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ url }) => {
     { name: 'Booking Process', status: 'pending', message: 'Testing the complete booking flow...' },
     { name: 'Confirmation Page', status: 'pending', message: 'Verifying successful completion...' },
   ]);
+  const [pdfFilename, setPdfFilename] = useState<string | null>(null);
+
 
   useEffect(() => {
     const eventSource = new EventSource(`http://localhost:5001/stream-validate?url=${encodeURIComponent(url)}`);
-  
     eventSource.onmessage = (event) => {
       const newResult = JSON.parse(event.data);
+      if (newResult.name === "PDF Report" && newResult.status === "success") {
+        // The message might look like: "Report generated: report_12345678.pdf"
+        // Extract the file name
+        const match = newResult.message.match(/Report generated:\s+(.*)/);
+        if (match && match[1]) {
+          const pdfFilename = match[1].trim(); // e.g. "report_12345678.pdf"
+          // Store in React state to display a link
+          setPdfFilename(pdfFilename);
+        }
+      }
       setTestResults(prev => {
         const updated = [...prev];
         const index = updated.findIndex(t => t.name === newResult.name);
@@ -88,6 +99,19 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({ url }) => {
 
   return (
     <div className="w-full space-y-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+    {pdfFilename && (
+  <div className="mt-4">
+    <a 
+      href={`http://localhost:5001/pdf/${pdfFilename}`} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-primary underline"
+    >
+      View/Download PDF Report
+    </a>
+  </div>
+)}
+
       <div className="glass-card p-6 sm:p-8 rounded-2xl shadow-smooth space-y-6">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
