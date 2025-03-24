@@ -29,5 +29,5 @@ The goal of this project is to help companies verify that their landing page's d
   Easily modify or extend the tool to handle various booking flows and additional validations.
 
 ## Demo
-
-A demo of the tool in action is attached with this project. Please refer to the file [FILE_2831.pdf](./FILE_2831.pdf) for an overview of how the validation process works.
+<img width="1511" alt="Screenshot 2025-03-23 at 5 10 46 PM" src="https://github.com/user-attachments/assets/e57280f2-732e-468b-b11a-6d36c42fbac3" />
+<img width="757" alt="Screenshot 2025-03-23 at 5 12 05 PM" src="https://github.com/user-attachments/assets/dbf01cc2-b371-4552-b5c3-68057a51fa50" />
