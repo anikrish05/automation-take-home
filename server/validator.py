@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import re
-from dotenv import load_dotenv  # Import the dotenv library
+from dotenv import load_dotenv
 import os
 from pathlib import Path
 
