@@ -26,7 +26,6 @@ SCREENSHOT_DIR = Path("screenshots")
 SCREENSHOT_DIR.mkdir(exist_ok=True)
 
 def ai_infer_submit_button(button_data):
-    """Given a list of buttons, infer which is most likely the form submit button."""
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -184,7 +183,7 @@ def run_test(url):
         test_results.append({"name": name, "status": status, "message": message})
         send_result(name, status, message)
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=False) #change headless to True for no UI
         page = browser.new_page()
         try:
             page.goto(url, timeout=15000)
@@ -233,11 +232,12 @@ def run_test(url):
             print("----------------")
             print(buttons[int(button_index)])
             print("---------------")
+            #pottential issue if doesn't go to a new page but generally it does
             with page.context.expect_page() as new_page_info:
                 filtered_buttons[int(button_index)].click()
             new_page = new_page_info.value
             new_page.wait_for_load_state()
-            page = new_page  # Switch context if needed
+            page = new_page
 
             #page.pause()
             log("Demo Button Detection", "success", f"Clicked button at index {button_index}.")

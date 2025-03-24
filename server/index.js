@@ -34,7 +34,7 @@ app.get('/stream-validate', (req, res) => {
   py.stdout.on('data', (data) => {
     const lines = data.toString().split('\n').filter(Boolean);
     lines.forEach(line => {
-      console.log("[Python] ▶️", line);  // ✅ Show in terminal
+      console.log("[Python] ▶️", line);
       res.write(`data: ${line}\n\n`);
     });
   });
